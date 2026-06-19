@@ -1,10 +1,31 @@
-import { describe, expect, test, mock, afterEach } from "bun:test";
+import { describe, expect, test, mock, afterEach, beforeEach } from "bun:test";
 import { buildVersionedUrl } from "@/utils/versionUtils";
 
 // ---------------------------------------------------------------------------
 // buildVersionedUrl — pure function, no mocking needed
 // ---------------------------------------------------------------------------
 describe("buildVersionedUrl", () => {
+  const originalDatasetUrl = process.env.DATASET_URL;
+  const originalPublicDatasetUrl = process.env.NEXT_PUBLIC_DATASET_URL;
+
+  beforeEach(() => {
+    delete process.env.DATASET_URL;
+    delete process.env.NEXT_PUBLIC_DATASET_URL;
+  });
+
+  afterEach(() => {
+    if (originalDatasetUrl === undefined) {
+      delete process.env.DATASET_URL;
+    } else {
+      process.env.DATASET_URL = originalDatasetUrl;
+    }
+    if (originalPublicDatasetUrl === undefined) {
+      delete process.env.NEXT_PUBLIC_DATASET_URL;
+    } else {
+      process.env.NEXT_PUBLIC_DATASET_URL = originalPublicDatasetUrl;
+    }
+  });
+
   test("builds URL for v2.0 dataset data path", () => {
     const url = buildVersionedUrl(
       "rabhishek100/so100_train_dataset",
@@ -53,6 +74,26 @@ describe("buildVersionedUrl", () => {
     const url = buildVersionedUrl("myorg/mydataset", "v3.0", "meta/info.json");
     expect(url).toBe(
       "https://huggingface.co/datasets/myorg/mydataset/resolve/main/meta/info.json",
+    );
+  });
+
+  test("uses NEXT_PUBLIC_DATASET_URL for local HTTP dataset hosts", () => {
+    process.env.NEXT_PUBLIC_DATASET_URL = "http://localhost:8080";
+
+    const url = buildVersionedUrl("abc/efg", "v3.0", "meta/info.json");
+
+    expect(url).toBe(
+      "http://localhost:8080/abc/efg/resolve/main/meta/info.json",
+    );
+  });
+
+  test("trims trailing slash from configured dataset URL", () => {
+    process.env.NEXT_PUBLIC_DATASET_URL = "http://localhost:8080/";
+
+    const url = buildVersionedUrl("abc/efg", "v3.0", "data/file.parquet");
+
+    expect(url).toBe(
+      "http://localhost:8080/abc/efg/resolve/main/data/file.parquet",
     );
   });
 });

@@ -26,14 +26,14 @@ function HomeInner() {
 
   // Handle redirects with useEffect instead of direct redirect
   useEffect(() => {
-    // Redirect to the first episode of the dataset if REPO_ID is defined
-    if (process.env.REPO_ID) {
-      const episodeN =
-        process.env.EPISODES?.split(/\s+/)
+    // Redirect to the first episode of the dataset if NEXT_PUBLIC_REPO_ID is defined.
+    const repoId = process.env.NEXT_PUBLIC_REPO_ID;
+    if (repoId) {
+      const initialEpisode =
+        process.env.NEXT_PUBLIC_EPISODES?.split(/\s+/)
           .map((x) => parseInt(x.trim(), 10))
-          .filter((x) => !isNaN(x))[0] ?? 0;
-
-      router.push(`/${process.env.REPO_ID}/episode_${episodeN}`);
+          .find((x) => !isNaN(x)) ?? 0;
+      router.push(`/${repoId}/episode_${initialEpisode}`);
       return;
     }
 

@@ -82,6 +82,38 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `src/app/page.tsx` or other files in the `src/` directory. The app supports hot-reloading for rapid development.
 
+### Browse a local dataset over HTTP
+
+The visualizer expects datasets to be hosted with the same URL shape as Hugging Face Datasets:
+
+```text
+<DATASET_URL>/<repo_id>/resolve/main/<file>
+```
+
+To view a local dataset (e.g. <repo_id>=abc/efg) without changing the visualizer into a file server, run any local HTTP service that maps:
+
+```text
+http://localhost:8080/abc/efg/resolve/main/meta/info.json
+```
+
+to:
+
+```text
+<your-datasets-root>/abc/efg/meta/info.json
+```
+
+Because the browser loads parquet and video files from `localhost:8080` while
+the app runs on `localhost:3000`, the local HTTP service must allow CORS for
+`http://localhost:3000`.
+
+Then start the visualizer with the local dataset host:
+
+```bash
+NEXT_PUBLIC_DATASET_URL=http://localhost:8080 bun run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000)
+
 ### Other Commands
 
 ```bash
@@ -100,7 +132,10 @@ bun run format
 
 ### Environment Variables
 
-- `DATASET_URL`: (optional) Base URL for dataset hosting (defaults to HuggingFace Datasets).
+- `DATASET_URL`: (optional) Server-side base URL for dataset hosting (defaults to HuggingFace Datasets).
+- `NEXT_PUBLIC_DATASET_URL`: (optional) Browser-visible base URL for dataset hosting. Set this with `DATASET_URL` when serving datasets from a local HTTP host such as `http://localhost:8080`.
+- `NEXT_PUBLIC_REPO_ID`: (optional) Dataset id to open automatically from the home page, for example `abc/efg`.
+- `NEXT_PUBLIC_EPISODES`: (optional) Space-separated episode ids used by the home page redirect; the first valid id is opened.
 - `NEXT_PUBLIC_ANNOTATE_BACKEND_URL`: (optional) URL of the FastAPI annotation
   backend (`backend/app.py`). When set, the Annotations tab can save edits and
   rewrite parquet shards / push to the Hub. When unset the tab is read/edit
