@@ -1,0 +1,21 @@
+:8080 {
+	root * {$PWD}
+
+	header {
+		Access-Control-Allow-Origin "http://localhost:{$PORT:3000}"
+		Access-Control-Allow-Methods "GET, HEAD, OPTIONS"
+		Access-Control-Allow-Headers "Range, Content-Type, Authorization"
+		Access-Control-Expose-Headers "Content-Length, Content-Range, Accept-Ranges"
+	}
+
+	@options method OPTIONS
+	respond @options 204
+
+	@dataset path_regexp dataset ^/([^/]+/[^/]+)/resolve/main/(.*)$
+	handle @dataset {
+		rewrite * /{re.dataset.1}/{re.dataset.2}
+		file_server
+	}
+
+	file_server browse
+}

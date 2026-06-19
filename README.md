@@ -90,26 +90,49 @@ The visualizer expects datasets to be hosted with the same URL shape as Hugging 
 <DATASET_URL>/<repo_id>/resolve/main/<file>
 ```
 
-To view a local dataset (e.g. <repo_id>=abc/efg) without changing the visualizer into a file server, run any local HTTP service that maps:
+To view a local dataset (e.g. <repo_id>=<org>/<setname>), use Caddy with the provided
+[`Caddyfile`](./Caddyfile). Install Caddy first if needed:
+
+```bash
+brew install caddy
+```
+
+Then go to the root directory of your local datasets and start the Caddy server
+with the `Caddyfile` from this repository:
+
+```bash
+cd <your-datasets-root>
+caddy run --config <path-to-this-repo>/Caddyfile
+```
+
+The Caddy server automatically maps:
 
 ```text
-http://localhost:8080/abc/efg/resolve/main/meta/info.json
+http://localhost:8080/<org>/<setname>/resolve/main/meta/info.json
 ```
 
 to:
 
 ```text
-<your-datasets-root>/abc/efg/meta/info.json
+<your-datasets-root>/<org>/<setname>/meta/info.json
 ```
 
-Because the browser loads parquet and video files from `localhost:8080` while
-the app runs on `localhost:3000`, the local HTTP service must allow CORS for
-`http://localhost:3000`.
+The provided `Caddyfile` also sends the CORS headers needed by the browser.
+It allows `http://localhost:${PORT}` when `PORT` is set, and defaults to
+`http://localhost:3000` when `PORT` is unset.
 
 Then start the visualizer with the local dataset host:
 
 ```bash
 NEXT_PUBLIC_DATASET_URL=http://localhost:8080 bun run dev
+```
+
+If you run the visualizer on a different port, pass the same `PORT` value to
+both Caddy and Next.js:
+
+```bash
+PORT=3001 caddy run --config <path-to-this-repo>/Caddyfile
+PORT=3001 NEXT_PUBLIC_DATASET_URL=http://localhost:8080 bun run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000)
@@ -134,7 +157,7 @@ bun run format
 
 - `DATASET_URL`: (optional) Server-side base URL for dataset hosting (defaults to HuggingFace Datasets).
 - `NEXT_PUBLIC_DATASET_URL`: (optional) Browser-visible base URL for dataset hosting. Set this with `DATASET_URL` when serving datasets from a local HTTP host such as `http://localhost:8080`.
-- `NEXT_PUBLIC_REPO_ID`: (optional) Dataset id to open automatically from the home page, for example `abc/efg`.
+- `NEXT_PUBLIC_REPO_ID`: (optional) Dataset id to open automatically from the home page, for example `<org>/<setname>`.
 - `NEXT_PUBLIC_EPISODES`: (optional) Space-separated episode ids used by the home page redirect; the first valid id is opened.
 - `NEXT_PUBLIC_ANNOTATE_BACKEND_URL`: (optional) URL of the FastAPI annotation
   backend (`backend/app.py`). When set, the Annotations tab can save edits and
